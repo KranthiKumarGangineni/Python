@@ -1,3 +1,4 @@
+# Class1
 class Person:
     def __init__(self):
         self.name = input("Name: ")
@@ -10,7 +11,7 @@ class Person:
         print("Age: ", self.age)
         print("Gender: ", self.gender)
 
-
+# Class2
 class Marks:
     def __init__(self):
         self.stuClass = input("Class: ")
@@ -24,7 +25,7 @@ class Marks:
         print("Study in: ", self.stuClass)
         print("Total Marks: ", self.math + self.chemistry + self.physics)
 
-
+# Class3
 class GradeSystem:
     def __init__(self, passorfail):
         self.passorfail = passorfail
@@ -35,6 +36,7 @@ class GradeSystem:
 
 
 # Multiple Inheritance
+# Class4
 class Student(Person, Marks):
     def __init__(self):
         # Super Call
