@@ -52,9 +52,9 @@ matrixC = tf.Variable(tf.random_uniform(shape, 0, 10, dtype=tf.int32))
 session.run(matrixC.initializer)
 print("Random Uniform Matrix generated for Matrix C : \n", session.run(matrixC))
 
-# Calculating Final Result (a ^ 2 + b) * c  using tf.multiply function
-# Reference: https://www.tensorflow.org/api_docs/python/tf/multiply
-matrixABC = tf.multiply(matrixAB, matrixC)
+# Calculating Final Result (a ^ 2 + b) * c  using tf.matmul function
+# Reference: https://www.tensorflow.org/api_docs/python/tf/matmul
+matrixABC = tf.matmul(matrixAB, matrixC)
 
 # Printing the Final Result
 print("Final Result for (a ^ 2 + b) * c function : \n", session.run(matrixABC))
