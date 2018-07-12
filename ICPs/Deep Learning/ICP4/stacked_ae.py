@@ -17,10 +17,10 @@ mnist = input_data.read_data_sets("MNIST_data", one_hot=True)
 
 # Training Parameters
 learning_rate = 0.01
-num_steps = 30000
+num_steps = 500
 batch_size = 256
 
-display_step = 1000
+display_step = 100
 examples_to_show = 10
 
 # Network Parameters
@@ -34,14 +34,18 @@ X = tf.placeholder("float", [None, num_input])
 weights = {
     'encoder_h1': tf.Variable(tf.random_normal([num_input, num_hidden_1])),
     'encoder_h2': tf.Variable(tf.random_normal([num_hidden_1, num_hidden_2])),
-    'decoder_h1': tf.Variable(tf.random_normal([num_hidden_2, num_hidden_1])),
-    'decoder_h2': tf.Variable(tf.random_normal([num_hidden_1, num_input])),
+    'encoder_h3': tf.Variable(tf.random_normal([num_hidden_2, num_hidden_1])),
+    'decoder_h1': tf.Variable(tf.random_normal([num_hidden_1, num_hidden_2])),
+    'decoder_h2': tf.Variable(tf.random_normal([num_hidden_2, num_hidden_1])),
+    'decoder_h3': tf.Variable(tf.random_normal([num_hidden_1, num_input])),
 }
 biases = {
     'encoder_b1': tf.Variable(tf.random_normal([num_hidden_1])),
     'encoder_b2': tf.Variable(tf.random_normal([num_hidden_2])),
-    'decoder_b1': tf.Variable(tf.random_normal([num_hidden_1])),
-    'decoder_b2': tf.Variable(tf.random_normal([num_input])),
+    'encoder_b3': tf.Variable(tf.random_normal([num_hidden_1])),
+    'decoder_b1': tf.Variable(tf.random_normal([num_hidden_2])),
+    'decoder_b2': tf.Variable(tf.random_normal([num_hidden_1])),
+    'decoder_b3': tf.Variable(tf.random_normal([num_input])),
 }
 
 
@@ -53,7 +57,10 @@ def encoder(x):
     # Encoder Hidden layer with sigmoid activation #2
     layer_2 = tf.nn.sigmoid(tf.add(tf.matmul(layer_1, weights['encoder_h2']),
                                    biases['encoder_b2']))
-    return layer_2
+    # Encoder Hidden layer with sigmoid activation #3
+    layer_3 = tf.nn.sigmoid(tf.add(tf.matmul(layer_2, weights['encoder_h3']),
+                                   biases['encoder_b3']))
+    return layer_3
 
 
 # Building the decoder
@@ -64,7 +71,10 @@ def decoder(x):
     # Decoder Hidden layer with sigmoid activation #2
     layer_2 = tf.nn.sigmoid(tf.add(tf.matmul(layer_1, weights['decoder_h2']),
                                    biases['decoder_b2']))
-    return layer_2
+    # Decoder Hidden layer with sigmoid activation #3
+    layer_3 = tf.nn.sigmoid(tf.add(tf.matmul(layer_2, weights['decoder_h3']),
+                                   biases['decoder_b3']))
+    return layer_3
 
 
 # Construct model
@@ -88,6 +98,9 @@ init = tf.global_variables_initializer()
 with tf.Session() as sess:
     # Run the initializer
     sess.run(init)
+    writer= tf.summary.FileWriter("./graphs",sess.graph)
+
+
 
     # Training
     for i in range(1, num_steps + 1):
@@ -132,3 +145,36 @@ with tf.Session() as sess:
     plt.figure(figsize=(n, n))
     plt.imshow(canvas_recon, origin="upper", cmap="gray")
     plt.show()
+
+tf.summary.scalar("loss", loss)
+
+with tf.Session() as sess:
+    sess.run(init)
+    writer = tf.summary.FileWriter("./graphs", sess.graph)
+
+
+    merged_summary_op = tf.summary.merge_all()
+    # op to write logs to Tensorboard
+    summary_writer = tf.summary.FileWriter("./summgraph", graph=tf.get_default_graph())
+    training_epochs=5
+    display_epoch=1
+    # Training cycle
+    for epoch in range(training_epochs):
+        avg_cost = 0.
+        total_batch = int(mnist.train.num_examples/batch_size)
+        # Loop over all batches
+        for i in range(total_batch):
+            batch_xs, batch_ys = mnist.train.next_batch(batch_size)
+            # Run optimization op (backprop), cost op (to get loss value)
+            # and summary nodes
+            _, c, summary = sess.run([optimizer, loss, merged_summary_op],
+                                     feed_dict={X: batch_xs})
+            # Write logs at every iteration
+            summary_writer.add_summary(summary, epoch * total_batch + i)
+            # Compute average loss
+            avg_cost += c / total_batch
+        # Display logs per epoch step
+        if (epoch+1) % display_epoch == 0:
+            print("Epoch:", '%04d' % (epoch+1), "cost=", "{:.9f}".format(avg_cost))
+
+    print("Optimization Finished!")
